@@ -94,34 +94,36 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // 电池主体（尺寸放大到 90x40，适配大屏）
         Box(
             modifier = Modifier
                 .width(
-                    52.dp,
+                    90.dp,
                 )
                 .height(
-                    22.dp,
+                    40.dp,
                 )
                 .background(
                     color = Color.Black.copy(
-                        alpha = 0.5f,
+                        alpha = 0.6f,
                     ),
                     shape = RoundedCornerShape(
-                        4.dp,
+                        6.dp,
                     ),
                 )
                 .border(
-                    width = 2.dp,
+                    width = 3.dp,
                     color = Color.White,
                     shape = RoundedCornerShape(
-                        4.dp,
+                        6.dp,
                     ),
                 )
                 .padding(
-                    2.dp,
+                    4.dp,
                 ),
             contentAlignment = Alignment.Center,
         ) {
+            // 内部的动态电量填充条
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -131,7 +133,7 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
                     .background(
                         color = color,
                         shape = RoundedCornerShape(
-                            2.dp,
+                            3.dp,
                         ),
                     )
                     .align(
@@ -139,37 +141,39 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
                     ),
             )
 
+            // 老人友好的超大、超粗、带阴影文字（24sp）
             Text(
                 text = "$batteryLevel",
                 color = Color.White,
-                fontSize = 14.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Black,
                 style = TextStyle(
                     shadow = Shadow(
                         color = Color.Black,
                         offset = Offset(
-                            1f,
-                            1f,
+                            2f,
+                            2f,
                         ),
-                        blurRadius = 2f,
+                        blurRadius = 4f,
                     ),
                 ),
             )
         }
 
+        // 电池正极凸起（等比放大）
         Box(
             modifier = Modifier
                 .width(
-                    4.dp,
+                    7.dp,
                 )
                 .height(
-                    10.dp,
+                    16.dp,
                 )
                 .background(
                     color = Color.White,
                     shape = RoundedCornerShape(
-                        topEnd = 2.dp,
-                        bottomEnd = 2.dp,
+                        topEnd = 3.dp,
+                        bottomEnd = 3.dp,
                     ),
                 ),
         )
