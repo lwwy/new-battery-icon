@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -22,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -97,18 +99,43 @@ internal fun MediaPlayerControls(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
 
-    // 👇👇👇 核心：自动上锁逻辑 👇👇👇
+    // 2秒后自动上锁
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         scope.launch {
-            // 延迟 2 秒自动上锁（如果你觉得 2 秒不够，把这里的 2000 改成 3000 或 4000）
             delay(2000)
-            // 只有在没有打开菜单（比如选字幕）的情况下才上锁，防止影响你自己的操作
             if (overlayView == null) {
                 controlsVisibilityState.lockControls()
             }
         }
     }
-    // 👆👆👆 核心：自动上锁逻辑 👆👆👆
+
+    // 👇 新增：控制小锁图标的透明度（3秒后隐身） 👇
+    var showLockIcon by remember { mutableStateOf(true) }
+    
+    LaunchedEffect(controlsVisibilityState.controlsLocked) {
+        if (controlsVisibilityState.controlsLocked) {
+            showLockIcon = true
+            delay(3000) // 锁定后亮3秒
+            showLockIcon = false // 然后彻底隐身
+        } else {
+            showLockIcon = true // 如果解锁了，就恢复常亮（虽然解锁后也没这个图标了）
+        }
+    }
+
+    // 点击屏幕时，让锁图标暂时重新出现，方便你解锁
+    LaunchedEffect(tapGestureState) {
+        if (controlsVisibilityState.controlsLocked && !showLockIcon) {
+            showLockIcon = true
+            delay(3000)
+            showLockIcon = false
+        }
+    }
+    
+    val lockAlpha by animateFloatAsState(
+        targetValue = if (showLockIcon) 1f else 0f,
+        label = "lock_alpha"
+    )
+    // 👆 新增结束 👆
 
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
@@ -182,13 +209,17 @@ internal fun MediaPlayerControls(
             )
 
             if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
-                PlayerLockedControls(
-                    onUnlockControls = controlsVisibilityState::unlockControls,
-                    unlockButtonModifier = Modifier.thenIf(condition = isTv) {
-                        focusRequester(focusRequester = unlockFocusRequester)
-                            .onFocusChanged { isUnlockFocused = it.hasFocus }
-                    },
-                )
+                // 👇 给 PlayerLockedControls 加上透明度属性 👇
+                Box(modifier = Modifier.alpha(lockAlpha)) {
+                    PlayerLockedControls(
+                        onUnlockControls = controlsVisibilityState::unlockControls,
+                        unlockButtonModifier = Modifier.thenIf(condition = isTv) {
+                            focusRequester(focusRequester = unlockFocusRequester)
+                                .onFocusChanged { isUnlockFocused = it.hasFocus }
+                        },
+                    )
+                }
+                // 👆 修改结束 👆
             } else {
                 PlayerControls(
                     player = player,
