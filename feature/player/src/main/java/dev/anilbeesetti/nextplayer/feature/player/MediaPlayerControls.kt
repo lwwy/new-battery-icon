@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -109,7 +111,7 @@ internal fun MediaPlayerControls(
         }
     }
 
-    // 👇 新增：控制小锁图标的透明度（3秒后隐身） 👇
+    // 控制小锁图标的透明度
     var showLockIcon by remember { mutableStateOf(true) }
     
     LaunchedEffect(controlsVisibilityState.controlsLocked) {
@@ -118,16 +120,7 @@ internal fun MediaPlayerControls(
             delay(3000) // 锁定后亮3秒
             showLockIcon = false // 然后彻底隐身
         } else {
-            showLockIcon = true // 如果解锁了，就恢复常亮（虽然解锁后也没这个图标了）
-        }
-    }
-
-    // 点击屏幕时，让锁图标暂时重新出现，方便你解锁
-    LaunchedEffect(tapGestureState) {
-        if (controlsVisibilityState.controlsLocked && !showLockIcon) {
             showLockIcon = true
-            delay(3000)
-            showLockIcon = false
         }
     }
     
@@ -135,7 +128,6 @@ internal fun MediaPlayerControls(
         targetValue = if (showLockIcon) 1f else 0f,
         label = "lock_alpha"
     )
-    // 👆 新增结束 👆
 
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
@@ -169,6 +161,23 @@ internal fun MediaPlayerControls(
         Box(
             modifier = modifier
                 .fillMaxSize()
+                // 👇 核心修改：拦截触摸事件唤醒小锁 👇
+                .pointerInput(controlsVisibilityState.controlsLocked) {
+                    if (controlsVisibilityState.controlsLocked) {
+                        detectTapGestures(
+                            onTap = {
+                                if (!showLockIcon) {
+                                    showLockIcon = true
+                                    scope.launch {
+                                        delay(3000)
+                                        showLockIcon = false
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+                // 👆 核心修改结束 👆
                 .thenIf(condition = isTv) {
                     focusRequester(focusRequester = rootFocusRequester)
                         .focusable()
@@ -209,7 +218,6 @@ internal fun MediaPlayerControls(
             )
 
             if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
-                // 👇 给 PlayerLockedControls 加上透明度属性 👇
                 Box(modifier = Modifier.alpha(lockAlpha)) {
                     PlayerLockedControls(
                         onUnlockControls = controlsVisibilityState::unlockControls,
@@ -219,7 +227,6 @@ internal fun MediaPlayerControls(
                         },
                     )
                 }
-                // 👆 修改结束 👆
             } else {
                 PlayerControls(
                     player = player,
