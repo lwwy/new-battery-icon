@@ -94,36 +94,51 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // 电池主体（长条形）
         Box(
             modifier = Modifier
-                .width(52.dp)
-                .height(22.dp)
+                .width(
+                    52.dp,
+                )
+                .height(
+                    22.dp,
+                )
                 .background(
-                    color = Color.Black.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(4.dp),
+                    color = Color.Black.copy(
+                        alpha = 0.5f,
+                    ),
+                    shape = RoundedCornerShape(
+                        4.dp,
+                    ),
                 )
                 .border(
                     width = 2.dp,
                     color = Color.White,
-                    shape = RoundedCornerShape(4.dp),
+                    shape = RoundedCornerShape(
+                        4.dp,
+                    ),
                 )
-                .padding(2.dp),
+                .padding(
+                    2.dp,
+                ),
             contentAlignment = Alignment.Center,
         ) {
-            // 内部的动态电量填充条
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(batteryLevel / 100f)
+                    .fillMaxWidth(
+                        batteryLevel / 100f,
+                    )
                     .background(
                         color = color,
-                        shape = RoundedCornerShape(2.dp),
+                        shape = RoundedCornerShape(
+                            2.dp,
+                        ),
                     )
-                    .align(Alignment.CenterStart),
+                    .align(
+                        Alignment.CenterStart,
+                    ),
             )
-            
-            // 加粗、带阴影的电量文字
+
             Text(
                 text = "$batteryLevel",
                 color = Color.White,
@@ -132,18 +147,24 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
                 style = TextStyle(
                     shadow = Shadow(
                         color = Color.Black,
-                        offset = Offset(1f, 1f),
+                        offset = Offset(
+                            1f,
+                            1f,
+                        ),
                         blurRadius = 2f,
                     ),
                 ),
             )
         }
-        
-        // 电池正极凸起
+
         Box(
             modifier = Modifier
-                .width(4.dp)
-                .height(10.dp)
+                .width(
+                    4.dp,
+                )
+                .height(
+                    10.dp,
+                )
                 .background(
                     color = Color.White,
                     shape = RoundedCornerShape(
