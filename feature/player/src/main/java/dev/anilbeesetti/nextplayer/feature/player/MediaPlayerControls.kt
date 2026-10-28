@@ -98,13 +98,12 @@ internal fun MediaPlayerControls(
         wasLockedBeforePause = controlsVisibilityState.controlsLocked
     }
 
+    // 使用 else if 展开嵌套，避免 KtLint 报错
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         if (wasLockedBeforePause) {
             controlsVisibilityState.lockControls()
-        } else {
-            if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
-                controlsVisibilityState.showControls()
-            }
+        } else if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
+            controlsVisibilityState.showControls()
         }
     }
 
