@@ -101,16 +101,16 @@ internal fun MediaPlayerControls(
     var wasLockedBeforePause by rememberSaveable { mutableStateOf(false) }
 
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
-        // 记录息屏前的锁定状态
         wasLockedBeforePause = controlsVisibilityState.controlsLocked
     }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         if (wasLockedBeforePause) {
-            // 🚨 核心修改：延迟 200 毫秒再强制上锁，等系统的重置逻辑跑完
             scope.launch {
                 delay(200)
+                // 双重保险：重新上锁，并强制隐藏控制栏！
                 controlsVisibilityState.lockControls()
+                controlsVisibilityState.hideControls()
             }
         } else if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
             controlsVisibilityState.showControls()
