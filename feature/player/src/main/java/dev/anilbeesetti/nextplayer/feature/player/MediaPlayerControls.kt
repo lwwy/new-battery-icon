@@ -9,7 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding // 新增：用于设置边距
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -32,6 +32,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
+import dev.anilbeesetti.nextplayer.core.ui.components.BatteryIndicator
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
 import dev.anilbeesetti.nextplayer.core.ui.components.thenIf
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
@@ -46,7 +47,6 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.DpadSeekIndicator
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestureIndicators
-import dev.anilbeesetti.nextplayer.core.ui.components.BatteryIndicator // 新增：导入你的电量组件
 import kotlin.time.Duration.Companion.seconds
 
 /** Controls and overlays shared by live playback and the previewable content. */
@@ -222,13 +222,14 @@ internal fun MediaPlayerControls(
                     videoZoomAndContentScaleState::onVideoContentScaleChanged,
             )
 
-            // 👇👇👇 新增：将电量指示器固定在屏幕右上角 👇👇👇
             BatteryIndicator(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 16.dp, end = 16.dp),
+                    .padding(
+                        top = 16.dp,
+                        end = 16.dp,
+                    ),
             )
-            // 👆👆👆 新增：将电量指示器固定在屏幕右上角 👆👆👆
         }
     }
 
