@@ -69,7 +69,6 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         }
     }
 
-    // 换成更扎实的 Material 标准绿和警告红
     val color = if (batteryLevel > 20) Color(0xFF4CAF50) else Color(0xFFF44336)
 
     Row(
@@ -78,7 +77,7 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
     ) {
         Box(
             modifier = Modifier
-                .width(82.dp) // 👈 缩短了 10dp，左右更紧凑
+                .width(82.dp) 
                 .height(40.dp)
                 .background(
                     color = Color.Black.copy(alpha = 0.6f), 
@@ -92,14 +91,13 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
                 .padding(3.dp), 
             contentAlignment = Alignment.Center,
         ) {
-            // 动态进度条
+            // 👇 动态进度条：去掉了 shape 属性，变成纯直角 👇
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(batteryLevel / 100f)
                     .background(
-                        color = color,
-                        shape = RoundedCornerShape(5.dp), // 👈 圆角改小，看起来更像进度条而不是圆球
+                        color = color, // 直角填充，不再有圆角
                     )
                     .align(Alignment.CenterStart),
             )
@@ -112,7 +110,7 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Black,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = (-3.5).dp), // 👈 保留向上偏移，确保居中
+                    .offset(y = (-3.5).dp), 
                 style = TextStyle(
                     platformStyle = PlatformTextStyle(
                         includeFontPadding = false,
