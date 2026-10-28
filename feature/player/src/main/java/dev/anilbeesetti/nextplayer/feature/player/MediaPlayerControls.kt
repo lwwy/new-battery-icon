@@ -92,13 +92,29 @@ internal fun MediaPlayerControls(
 
     val context = LocalContext.current
 
-    // 监听亮屏事件，重置控制栏倒计时
+    // ==========================================
+    // 新增：息屏亮屏 状态记忆与倒计时重置逻辑
+    // ==========================================
     val lifecycleOwner = LocalLifecycleOwner.current
+    var wasLockedBeforePause by remember { mutableStateOf(false) }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
+        // 息屏或切后台时，记住当前的锁定状态
+        wasLockedBeforePause = controlsVisibilityState.controlsLocked
+    }
+
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
-            controlsVisibilityState.showControls()
+        // 亮屏或回前台时，如果刚才锁定了，直接恢复锁定状态
+        if (wasLockedBeforePause) {
+            controlsVisibilityState.lockControls()
+        } else {
+            // 如果没锁定，且控制栏是显示的，重置自动隐藏倒计时
+            if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
+                controlsVisibilityState.showControls()
+            }
         }
     }
+    // ==========================================
 
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
