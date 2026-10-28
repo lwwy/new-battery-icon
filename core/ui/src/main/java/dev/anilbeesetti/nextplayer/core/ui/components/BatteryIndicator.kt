@@ -96,8 +96,8 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
     ) {
         Box(
             modifier = Modifier
-                .width(90.dp)
-                .height(40.dp)
+                .width(96.dp)
+                .height(44.dp)
                 .background(
                     color = Color.Black.copy(alpha = 0.6f),
                     shape = RoundedCornerShape(6.dp),
@@ -124,7 +124,7 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
             Text(
                 text = "$batteryLevel",
                 color = Color.White,
-                fontSize = 24.sp,
+                fontSize = 30.sp,
                 fontWeight = FontWeight.Black,
                 style = TextStyle(
                     shadow = Shadow(
