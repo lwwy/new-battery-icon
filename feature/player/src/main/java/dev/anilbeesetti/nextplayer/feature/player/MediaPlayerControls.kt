@@ -19,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -97,25 +96,19 @@ internal fun MediaPlayerControls(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
-    
-    var wasLockedBeforePause by rememberSaveable { mutableStateOf(false) }
 
-    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
-        wasLockedBeforePause = controlsVisibilityState.controlsLocked
-    }
-
+    // 👇👇👇 核心：自动上锁逻辑 👇👇👇
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        if (wasLockedBeforePause) {
-            scope.launch {
-                delay(200)
-                // 双重保险：重新上锁，并强制隐藏控制栏！
+        scope.launch {
+            // 延迟 2 秒自动上锁（如果你觉得 2 秒不够，把这里的 2000 改成 3000 或 4000）
+            delay(2000)
+            // 只有在没有打开菜单（比如选字幕）的情况下才上锁，防止影响你自己的操作
+            if (overlayView == null) {
                 controlsVisibilityState.lockControls()
-                controlsVisibilityState.hideControls()
             }
-        } else if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
-            controlsVisibilityState.showControls()
         }
     }
+    // 👆👆👆 核心：自动上锁逻辑 👆👆👆
 
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
