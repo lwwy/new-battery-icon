@@ -226,7 +226,7 @@ internal fun MediaPlayerControls(
             BatteryIndicator(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 16.dp, end = 16.dp)
+                    .padding(top = 16.dp, end = 16.dp),
             )
             // 👆👆👆 新增：将电量指示器固定在屏幕右上角 👆👆👆
         }
