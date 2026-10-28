@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,17 +93,21 @@ internal fun MediaPlayerControls(
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var wasLockedBeforePause by remember { mutableStateOf(false) }
+    
+    // 核心修改：使用 rememberSaveable，这样即使息屏时系统回收了界面，状态依然在！
+    var wasLockedBeforePause by rememberSaveable { mutableStateOf(false) }
 
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
+        // 记录锁状态
         wasLockedBeforePause = controlsVisibilityState.controlsLocked
     }
 
-    // 使用 else if 展开嵌套，避免 KtLint 报错
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        // 如果之前是锁定的，亮屏时强制重新锁上，绝不妥协！
         if (wasLockedBeforePause) {
             controlsVisibilityState.lockControls()
         } else if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
+            // 否则重置倒计时
             controlsVisibilityState.showControls()
         }
     }
