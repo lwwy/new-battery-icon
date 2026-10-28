@@ -43,8 +43,14 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent != null) {
-                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-                    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                    val level = intent.getIntExtra(
+                        BatteryManager.EXTRA_LEVEL,
+                        -1,
+                    )
+                    val scale = intent.getIntExtra(
+                        BatteryManager.EXTRA_SCALE,
+                        -1,
+                    )
                     if (level != -1 && scale != -1) {
                         batteryLevel = level * 100 / scale
                     }
@@ -52,16 +58,28 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
             }
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val intent = context.registerReceiver(null, filter)
+        val intent = context.registerReceiver(
+            null,
+            filter,
+        )
         if (intent != null) {
-            val initLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-            val initScale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+            val initLevel = intent.getIntExtra(
+                BatteryManager.EXTRA_LEVEL,
+                -1,
+            )
+            val initScale = intent.getIntExtra(
+                BatteryManager.EXTRA_SCALE,
+                -1,
+            )
             if (initLevel != -1 && initScale != -1) {
                 batteryLevel = initLevel * 100 / initScale
             }
         }
 
-        context.registerReceiver(receiver, filter)
+        context.registerReceiver(
+            receiver,
+            filter,
+        )
         onDispose {
             context.unregisterReceiver(receiver)
         }
