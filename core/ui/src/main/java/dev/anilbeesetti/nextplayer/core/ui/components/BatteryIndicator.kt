@@ -43,14 +43,8 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent != null) {
-                    val level = intent.getIntExtra(
-                        BatteryManager.EXTRA_LEVEL,
-                        -1,
-                    )
-                    val scale = intent.getIntExtra(
-                        BatteryManager.EXTRA_SCALE,
-                        -1,
-                    )
+                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
                     if (level != -1 && scale != -1) {
                         batteryLevel = level * 100 / scale
                     }
@@ -58,42 +52,30 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
             }
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val intent = context.registerReceiver(
-            null,
-            filter,
-        )
+        val intent = context.registerReceiver(null, filter)
         if (intent != null) {
-            val initLevel = intent.getIntExtra(
-                BatteryManager.EXTRA_LEVEL,
-                -1,
-            )
-            val initScale = intent.getIntExtra(
-                BatteryManager.EXTRA_SCALE,
-                -1,
-            )
+            val initLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+            val initScale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
             if (initLevel != -1 && initScale != -1) {
                 batteryLevel = initLevel * 100 / initScale
             }
         }
 
-        context.registerReceiver(
-            receiver,
-            filter,
-        )
+        context.registerReceiver(receiver, filter)
         onDispose {
             context.unregisterReceiver(receiver)
         }
     }
 
-    // 压平成单行，防止检查器报错
-    val color = if (batteryLevel > 20) Color(0xFF4CAF50) else Color.Red
+    var color = Color(0xFF4CAF50)
+    if (batteryLevel <= 20) {
+        color = Color.Red
+    }
 
-    // 触摸穿透
     Row(
         modifier = modifier.pointerInput(Unit) {},
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // 电池主体（恢复 90x40）
         Box(
             modifier = Modifier
                 .width(90.dp)
@@ -110,7 +92,6 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
                 .padding(4.dp),
             contentAlignment = Alignment.Center,
         ) {
-            // 内部填充条
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -122,7 +103,6 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
                     .align(Alignment.CenterStart),
             )
 
-            // 字号 24sp
             Text(
                 text = "$batteryLevel",
                 color = Color.White,
@@ -138,7 +118,6 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
             )
         }
 
-        // 电池正极凸起
         Box(
             modifier = Modifier
                 .width(7.dp)
