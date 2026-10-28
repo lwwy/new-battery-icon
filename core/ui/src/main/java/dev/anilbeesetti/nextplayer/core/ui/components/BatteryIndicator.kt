@@ -28,37 +28,53 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
             override fun onReceive(context: Context?, intent: Intent?) {
                 val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
                 val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-                if (level != -1 && scale != -1) batteryLevel = level * 100 / scale
+                if (level != -1 && scale != -1) {
+                    batteryLevel = level * 100 / scale
+                }
             }
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
         
+        // 初始读取一次，防止刚打开显示100
         val intent = context.registerReceiver(null, filter)
         val initLevel = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val initScale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-        if (initLevel != -1 && initScale != -1) batteryLevel = initLevel * 100 / initScale
+        if (initLevel != -1 && initScale != -1) {
+            batteryLevel = initLevel * 100 / initScale
+        }
 
         context.registerReceiver(receiver, filter)
         onDispose { context.unregisterReceiver(receiver) }
     }
 
+    // 颜色逻辑：大于20%绿色，小于等于20%红色
     val color = if (batteryLevel > 20) Color(0xFF4CAF50) else Color.Red
 
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // 电池外壳（白色粗边）
         Box(
             modifier = Modifier
                 .background(Color.White, RoundedCornerShape(4.dp))
-                .padding(2.dp)
-                .background(color, RoundedCornerShape(2.dp))
-                .padding(horizontal = 6.dp, vertical = 2.dp)
+                .padding(2.dp) // 白边厚度
+                .background(color, RoundedCornerShape(2.dp)) // 内部填充色
+                .padding(horizontal = 6.dp, vertical = 2.dp), // <--- 这里加了逗号
         ) {
-            Text(text = "$batteryLevel", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "$batteryLevel",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+            )
         }
+        // 电池正极凸起
         Box(
             modifier = Modifier
                 .width(3.dp)
                 .height(10.dp)
-                .background(Color.White, RoundedCornerShape(topEnd = 2.dp, bottomEnd = 2.dp))
+                .background(Color.White, RoundedCornerShape(topEnd = 2.dp, bottomEnd = 2.dp)), // <--- 这里加了逗号
         )
     }
 }
