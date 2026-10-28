@@ -96,21 +96,21 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         modifier = modifier.pointerInput(Unit) {},
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // 电池主体（再次放大：140x56）
+        // 电池主体（恢复 90x40）
         Box(
             modifier = Modifier
-                .width(140.dp)
-                .height(56.dp)
+                .width(90.dp)
+                .height(40.dp)
                 .background(
                     color = Color.Black.copy(alpha = 0.6f),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(6.dp),
                 )
                 .border(
-                    width = 5.dp,
+                    width = 3.dp,
                     color = Color.White,
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(6.dp),
                 )
-                .padding(6.dp),
+                .padding(4.dp),
             contentAlignment = Alignment.Center,
         ) {
             // 内部填充条
@@ -120,37 +120,37 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
                     .fillMaxWidth(batteryLevel / 100f)
                     .background(
                         color = color,
-                        shape = RoundedCornerShape(4.dp),
+                        shape = RoundedCornerShape(3.dp),
                     )
                     .align(Alignment.CenterStart),
             )
 
-            // 字号放大到 36sp，加最粗的字体和强烈阴影
+            // 字号 24sp
             Text(
                 text = "$batteryLevel",
                 color = Color.White,
-                fontSize = 36.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Black,
                 style = TextStyle(
                     shadow = Shadow(
                         color = Color.Black,
-                        offset = Offset(3f, 3f),
-                        blurRadius = 5f,
+                        offset = Offset(2f, 2f),
+                        blurRadius = 4f,
                     ),
                 ),
             )
         }
 
-        // 电池正极凸起（拉宽到 10dp）
+        // 电池正极凸起
         Box(
             modifier = Modifier
-                .width(10.dp)
-                .height(22.dp)
+                .width(7.dp)
+                .height(16.dp)
                 .background(
                     color = Color.White,
                     shape = RoundedCornerShape(
-                        topEnd = 4.dp,
-                        bottomEnd = 4.dp,
+                        topEnd = 3.dp,
+                        bottomEnd = 3.dp,
                     ),
                 ),
         )
