@@ -8,7 +8,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,6 +32,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -161,11 +164,13 @@ internal fun MediaPlayerControls(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                // 👇 核心修改：拦截触摸事件唤醒小锁 👇
+                // 👇 核心修改：最安全的“偷听”触摸方式，绝不干扰底层手势 👇
                 .pointerInput(controlsVisibilityState.controlsLocked) {
                     if (controlsVisibilityState.controlsLocked) {
-                        detectTapGestures(
-                            onTap = {
+                        awaitEachGesture {
+                            awaitFirstDown(pass = PointerEventPass.Initial)
+                            val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
+                            if (up != null) {
                                 if (!showLockIcon) {
                                     showLockIcon = true
                                     scope.launch {
@@ -174,7 +179,7 @@ internal fun MediaPlayerControls(
                                     }
                                 }
                             }
-                        )
+                        }
                     }
                 }
                 // 👆 核心修改结束 👆
