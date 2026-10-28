@@ -28,6 +28,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.state.rememberProgressStateWithTickInterval
@@ -88,6 +91,15 @@ internal fun MediaPlayerControls(
     }
 
     val context = LocalContext.current
+
+    // 监听亮屏事件，重置控制栏倒计时
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
+            controlsVisibilityState.showControls()
+        }
+    }
+
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
     val middleControlsFocusRequester = remember { FocusRequester() }
@@ -222,12 +234,13 @@ internal fun MediaPlayerControls(
                     videoZoomAndContentScaleState::onVideoContentScaleChanged,
             )
 
+            // 电池图标（保持在外层，亮屏常驻）
             BatteryIndicator(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(
-                        top = 16.dp,
-                        end = 16.dp,
+                        top = 32.dp,
+                        end = 32.dp,
                     ),
             )
         }
