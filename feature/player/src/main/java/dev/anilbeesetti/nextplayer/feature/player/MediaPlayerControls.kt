@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +52,8 @@ import dev.anilbeesetti.nextplayer.feature.player.ui.DpadSeekIndicator
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayShowView
 import dev.anilbeesetti.nextplayer.feature.player.ui.OverlayView
 import dev.anilbeesetti.nextplayer.feature.player.ui.PlayerGestureIndicators
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
 /** Controls and overlays shared by live playback and the previewable content. */
@@ -93,21 +96,23 @@ internal fun MediaPlayerControls(
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
     
-    // 核心修改：使用 rememberSaveable，这样即使息屏时系统回收了界面，状态依然在！
     var wasLockedBeforePause by rememberSaveable { mutableStateOf(false) }
 
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
-        // 记录锁状态
+        // 记录息屏前的锁定状态
         wasLockedBeforePause = controlsVisibilityState.controlsLocked
     }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        // 如果之前是锁定的，亮屏时强制重新锁上，绝不妥协！
         if (wasLockedBeforePause) {
-            controlsVisibilityState.lockControls()
+            // 🚨 核心修改：延迟 200 毫秒再强制上锁，等系统的重置逻辑跑完
+            scope.launch {
+                delay(200)
+                controlsVisibilityState.lockControls()
+            }
         } else if (controlsVisibilityState.controlsVisible && !controlsVisibilityState.controlsLocked) {
-            // 否则重置倒计时
             controlsVisibilityState.showControls()
         }
     }
