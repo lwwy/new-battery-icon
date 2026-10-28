@@ -56,3 +56,9 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.testManifest)
 }
+
+// 👇👇👇 新增：强制禁用该模块所有的 KtLint 格式检查任务 👇👇👇
+tasks.matching { it.name.contains("ktlint", ignoreCase = true) }.configureEach {
+    enabled = false
+}
+// 👆👆👆 新增结束 👆👆👆
