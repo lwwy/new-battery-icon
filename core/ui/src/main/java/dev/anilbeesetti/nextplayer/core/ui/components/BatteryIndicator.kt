@@ -35,14 +35,8 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
     DisposableEffect(Unit) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                val level = intent?.getIntExtra(
-                    BatteryManager.EXTRA_LEVEL,
-                    -1,
-                ) ?: -1
-                val scale = intent?.getIntExtra(
-                    BatteryManager.EXTRA_SCALE,
-                    -1,
-                ) ?: -1
+                val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
                 if (level != -1 && scale != -1) {
                     batteryLevel = level * 100 / scale
                 }
@@ -50,14 +44,8 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
         val intent = context.registerReceiver(null, filter)
-        val initLevel = intent?.getIntExtra(
-            BatteryManager.EXTRA_LEVEL,
-            -1,
-        ) ?: -1
-        val initScale = intent?.getIntExtra(
-            BatteryManager.EXTRA_SCALE,
-            -1,
-        ) ?: -1
+        val initLevel = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val initScale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
         if (initLevel != -1 && initScale != -1) {
             batteryLevel = initLevel * 100 / initScale
         }
@@ -74,19 +62,10 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
     ) {
         Box(
             modifier = Modifier
-                .background(
-                    color = Color.White,
-                    shape = RoundedCornerShape(4.dp),
-                )
+                .background(Color.White, RoundedCornerShape(4.dp))
                 .padding(2.dp)
-                .background(
-                    color = color,
-                    shape = RoundedCornerShape(2.dp),
-                )
-                .padding(
-                    horizontal = 6.dp,
-                    vertical = 2.dp,
-                ),
+                .background(color, RoundedCornerShape(2.dp))
+                .padding(horizontal = 6.dp, vertical = 2.dp),
         ) {
             Text(
                 text = "$batteryLevel",
@@ -99,13 +78,7 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .width(3.dp)
                 .height(10.dp)
-                .background(
-                    color = Color.White,
-                    shape = RoundedCornerShape(
-                        topEnd = 2.dp,
-                        bottomEnd = 2.dp,
-                    ),
-                ),
+                .background(Color.White, RoundedCornerShape(topEnd = 2.dp, bottomEnd = 2.dp)),
         )
     }
 }
