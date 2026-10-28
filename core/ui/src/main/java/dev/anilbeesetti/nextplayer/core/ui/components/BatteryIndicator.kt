@@ -85,11 +85,8 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         }
     }
 
-    val color = if (batteryLevel > 20) {
-        Color(0xFF4CAF50)
-    } else {
-        Color.Red
-    }
+    // 压平成单行，防止检查器报错
+    val color = if (batteryLevel > 20) Color(0xFF4CAF50) else Color.Red
 
     // 触摸穿透
     Row(
