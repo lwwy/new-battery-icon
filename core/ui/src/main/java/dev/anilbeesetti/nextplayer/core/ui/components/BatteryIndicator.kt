@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -90,90 +91,66 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         Color.Red
     }
 
+    // 触摸穿透
     Row(
-        modifier = modifier,
+        modifier = modifier.pointerInput(Unit) {},
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // 电池主体（尺寸放大到 90x40，适配大屏）
+        // 电池主体（再次放大：140x56）
         Box(
             modifier = Modifier
-                .width(
-                    90.dp,
-                )
-                .height(
-                    40.dp,
-                )
+                .width(140.dp)
+                .height(56.dp)
                 .background(
-                    color = Color.Black.copy(
-                        alpha = 0.6f,
-                    ),
-                    shape = RoundedCornerShape(
-                        6.dp,
-                    ),
+                    color = Color.Black.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(8.dp),
                 )
                 .border(
-                    width = 3.dp,
+                    width = 5.dp,
                     color = Color.White,
-                    shape = RoundedCornerShape(
-                        6.dp,
-                    ),
+                    shape = RoundedCornerShape(8.dp),
                 )
-                .padding(
-                    4.dp,
-                ),
+                .padding(6.dp),
             contentAlignment = Alignment.Center,
         ) {
-            // 内部的动态电量填充条
+            // 内部填充条
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(
-                        batteryLevel / 100f,
-                    )
+                    .fillMaxWidth(batteryLevel / 100f)
                     .background(
                         color = color,
-                        shape = RoundedCornerShape(
-                            3.dp,
-                        ),
+                        shape = RoundedCornerShape(4.dp),
                     )
-                    .align(
-                        Alignment.CenterStart,
-                    ),
+                    .align(Alignment.CenterStart),
             )
 
-            // 老人友好的超大、超粗、带阴影文字（24sp）
+            // 字号放大到 36sp，加最粗的字体和强烈阴影
             Text(
                 text = "$batteryLevel",
                 color = Color.White,
-                fontSize = 24.sp,
+                fontSize = 36.sp,
                 fontWeight = FontWeight.Black,
                 style = TextStyle(
                     shadow = Shadow(
                         color = Color.Black,
-                        offset = Offset(
-                            2f,
-                            2f,
-                        ),
-                        blurRadius = 4f,
+                        offset = Offset(3f, 3f),
+                        blurRadius = 5f,
                     ),
                 ),
             )
         }
 
-        // 电池正极凸起（等比放大）
+        // 电池正极凸起（拉宽到 10dp）
         Box(
             modifier = Modifier
-                .width(
-                    7.dp,
-                )
-                .height(
-                    16.dp,
-                )
+                .width(10.dp)
+                .height(22.dp)
                 .background(
                     color = Color.White,
                     shape = RoundedCornerShape(
-                        topEnd = 3.dp,
-                        bottomEnd = 3.dp,
+                        topEnd = 4.dp,
+                        bottomEnd = 4.dp,
                     ),
                 ),
         )
