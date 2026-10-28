@@ -164,25 +164,24 @@ internal fun MediaPlayerControls(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                // 👇 核心修改：最安全的“偷听”触摸方式，绝不干扰底层手势 👇
-                .pointerInput(controlsVisibilityState.controlsLocked) {
-                    if (controlsVisibilityState.controlsLocked) {
-                        awaitEachGesture {
-                            awaitFirstDown(pass = PointerEventPass.Initial)
-                            val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
-                            if (up != null) {
-                                if (!showLockIcon) {
-                                    showLockIcon = true
-                                    scope.launch {
-                                        delay(3000)
-                                        showLockIcon = false
-                                    }
+                // 👇 核心修复：使用 Unit，让监听器永不重启，仅在 Pass.Final 阶段“偷听” 👇
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        // 使用 Final 阶段，确保底层的控制栏先把点击处理完，我们只负责“偷听”
+                        awaitFirstDown(pass = PointerEventPass.Final)
+                        val up = waitForUpOrCancellation(pass = PointerEventPass.Final)
+                        if (up != null) {
+                            if (controlsVisibilityState.controlsLocked && !showLockIcon) {
+                                showLockIcon = true
+                                scope.launch {
+                                    delay(3000)
+                                    showLockIcon = false
                                 }
                             }
                         }
                     }
                 }
-                // 👆 核心修改结束 👆
+                // 👆 核心修复结束 👆
                 .thenIf(condition = isTv) {
                     focusRequester(focusRequester = rootFocusRequester)
                         .focusable()
