@@ -239,8 +239,8 @@ internal fun MediaPlayerControls(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(
-                        top = 20.dp,
-                        end = 20.dp,
+                        top = 15.dp,
+                        end = 18.dp,
                     ),
             )
         }
