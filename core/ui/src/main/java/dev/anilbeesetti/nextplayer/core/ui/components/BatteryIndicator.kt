@@ -30,9 +30,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -45,14 +45,8 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent != null) {
-                    val level = intent.getIntExtra(
-                        BatteryManager.EXTRA_LEVEL,
-                        -1,
-                    )
-                    val scale = intent.getIntExtra(
-                        BatteryManager.EXTRA_SCALE,
-                        -1,
-                    )
+                    val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                    val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
                     if (level != -1 && scale != -1) {
                         batteryLevel = level * 100 / scale
                     }
@@ -60,37 +54,23 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
             }
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val intent = context.registerReceiver(
-            null,
-            filter,
-        )
+        val intent = context.registerReceiver(null, filter)
         if (intent != null) {
-            val initLevel = intent.getIntExtra(
-                BatteryManager.EXTRA_LEVEL,
-                -1,
-            )
-            val initScale = intent.getIntExtra(
-                BatteryManager.EXTRA_SCALE,
-                -1,
-            )
+            val initLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+            val initScale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
             if (initLevel != -1 && initScale != -1) {
                 batteryLevel = initLevel * 100 / initScale
             }
         }
 
-        context.registerReceiver(
-            receiver,
-            filter,
-        )
+        context.registerReceiver(receiver, filter)
         onDispose {
             context.unregisterReceiver(receiver)
         }
     }
 
-    var color = Color(0xFF4CAF50)
-    if (batteryLevel <= 20) {
-        color = Color.Red
-    }
+    // 参考 iOS，低于20%变红，采用苹果系统标准色号
+    val color = if (batteryLevel > 20) Color(0xFF34C759) else Color(0xFFFF3B30)
 
     Row(
         modifier = modifier.pointerInput(Unit) {},
@@ -98,52 +78,60 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
     ) {
         Box(
             modifier = Modifier
-                .width(90.dp)
+                .width(92.dp) 
                 .height(40.dp)
                 .background(
-                    color = Color.Black.copy(alpha = 0.6f),
-                    shape = RoundedCornerShape(6.dp),
+                    color = Color.Black.copy(alpha = 0.6f), 
+                    shape = RoundedCornerShape(10.dp), 
                 )
                 .border(
                     width = 3.dp,
                     color = Color.White,
-                    shape = RoundedCornerShape(6.dp),
+                    shape = RoundedCornerShape(10.dp),
                 )
-                .padding(4.dp),
+                .padding(3.dp), 
             contentAlignment = Alignment.Center,
         ) {
+            // 动态进度条
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(batteryLevel / 100f)
                     .background(
                         color = color,
-                        shape = RoundedCornerShape(3.dp),
+                        shape = RoundedCornerShape(7.dp), 
                     )
                     .align(Alignment.CenterStart),
             )
 
+            // 数字文本
             Text(
                 text = "$batteryLevel",
                 color = Color.White,
-                fontSize = 30.sp,
+                fontSize = 28.sp, 
                 fontWeight = FontWeight.Black,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.offset(y = (-2).dp),
+                // 👇 核心修改：加上 align 并在物理层面强行向上偏移 👇
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = (-3.5).dp), 
                 style = TextStyle(
-                    lineHeight = 30.sp,
+                    platformStyle = PlatformTextStyle(
+                        includeFontPadding = false,
+                    ),
+                    lineHeight = 28.sp, 
                     shadow = Shadow(
                         color = Color.Black,
-                        offset = Offset(2f, 2f),
-                        blurRadius = 4f,
+                        offset = Offset(1.5f, 1.5f),
+                        blurRadius = 3f,
                     ),
                 ),
             )
         }
 
+        // 电池正极凸起
         Box(
             modifier = Modifier
-                .width(7.dp)
+                .width(6.dp)
                 .height(16.dp)
                 .background(
                     color = Color.White,
