@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +32,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -126,7 +128,10 @@ fun BatteryIndicator(modifier: Modifier = Modifier) {
                 color = Color.White,
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.offset(y = (-2).dp),
                 style = TextStyle(
+                    lineHeight = 30.sp,
                     shadow = Shadow(
                         color = Color.Black,
                         offset = Offset(2f, 2f),
