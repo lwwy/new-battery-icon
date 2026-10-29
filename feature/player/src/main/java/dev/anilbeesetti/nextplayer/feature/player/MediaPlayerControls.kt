@@ -8,7 +8,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,6 +32,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -101,12 +104,10 @@ internal fun MediaPlayerControls(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
 
-    // 👇【修改点】零闪现版本：亮屏瞬间直接强制隐藏并上锁，不留 1 秒的窗口 👇
+    // 零闪现：亮屏瞬间直接上锁
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         if (overlayView == null) {
-            // 强制隐藏控制栏
             controlsVisibilityState.hideControls()
-            // 强制上锁
             controlsVisibilityState.lockControls()
         }
     }
@@ -161,22 +162,23 @@ internal fun MediaPlayerControls(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                // 点击屏幕唤醒小锁的逻辑
-                .pointerInput(controlsVisibilityState.controlsLocked) {
-                    if (controlsVisibilityState.controlsLocked) {
-                        detectTapGestures(
-                            onTap = {
-                                if (!showLockIcon) {
-                                    showLockIcon = true
-                                    scope.launch {
-                                        delay(3000) // 点击唤醒后，停留 3 秒
-                                        showLockIcon = false
-                                    }
+                // 👇 核心修复：使用 Unit 永不重建，利用 Final 阶段偷听点击 👇
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        awaitFirstDown(pass = PointerEventPass.Final)
+                        val up = waitForUpOrCancellation(pass = PointerEventPass.Final)
+                        if (up != null) {
+                            if (controlsVisibilityState.controlsLocked && !showLockIcon) {
+                                showLockIcon = true
+                                scope.launch {
+                                    delay(3000)
+                                    showLockIcon = false
                                 }
                             }
-                        )
+                        }
                     }
                 }
+                // 👆 核心修复结束 👆
                 .thenIf(condition = isTv) {
                     focusRequester(focusRequester = rootFocusRequester)
                         .focusable()
