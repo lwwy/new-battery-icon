@@ -101,10 +101,10 @@ internal fun MediaPlayerControls(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
 
-    // 2秒后自动上锁
+    // 👇【修改点1】自动上锁时间改为 1 秒（1000 毫秒） 👇
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         scope.launch {
-            delay(2000)
+            delay(1000)
             if (overlayView == null) {
                 controlsVisibilityState.lockControls()
             }
@@ -117,7 +117,7 @@ internal fun MediaPlayerControls(
     LaunchedEffect(controlsVisibilityState.controlsLocked) {
         if (controlsVisibilityState.controlsLocked) {
             showLockIcon = true
-            delay(3000) // 锁定后亮3秒
+            delay(3000) // 刚锁定时，小锁提示亮 3 秒
             showLockIcon = false // 然后彻底隐身
         } else {
             showLockIcon = true
@@ -169,6 +169,7 @@ internal fun MediaPlayerControls(
                                 if (!showLockIcon) {
                                     showLockIcon = true
                                     scope.launch {
+                                        // 👇【修改点2】点击唤醒后，小锁停留 3 秒 👇
                                         delay(3000)
                                         showLockIcon = false
                                     }
@@ -292,7 +293,7 @@ internal fun MediaPlayerControls(
         }
     }
 
-    // 👇👇👇 核心补充：锁定时拦截返回键，防止老人按三角键退出去！ 👇👇👇
+    // 锁定状态下，拦截返回键
     BackHandler {
         if (controlsVisibilityState.controlsLocked) {
             return@BackHandler
@@ -307,5 +308,4 @@ internal fun MediaPlayerControls(
             else -> onAction(PlayerAction.NavigateUp)
         }
     }
-    // 👆👆👆 核心补充结束 👆👆👆
 }
