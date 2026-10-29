@@ -101,13 +101,13 @@ internal fun MediaPlayerControls(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
 
-    // 👇【修改点1】自动上锁时间改为 1 秒（1000 毫秒） 👇
+    // 👇【修改点】零闪现版本：亮屏瞬间直接强制隐藏并上锁，不留 1 秒的窗口 👇
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        scope.launch {
-            delay(1000)
-            if (overlayView == null) {
-                controlsVisibilityState.lockControls()
-            }
+        if (overlayView == null) {
+            // 强制隐藏控制栏
+            controlsVisibilityState.hideControls()
+            // 强制上锁
+            controlsVisibilityState.lockControls()
         }
     }
 
@@ -117,7 +117,7 @@ internal fun MediaPlayerControls(
     LaunchedEffect(controlsVisibilityState.controlsLocked) {
         if (controlsVisibilityState.controlsLocked) {
             showLockIcon = true
-            delay(3000) // 刚锁定时，小锁提示亮 3 秒
+            delay(3000) // 锁定时，小锁提示亮 3 秒
             showLockIcon = false // 然后彻底隐身
         } else {
             showLockIcon = true
@@ -169,8 +169,7 @@ internal fun MediaPlayerControls(
                                 if (!showLockIcon) {
                                     showLockIcon = true
                                     scope.launch {
-                                        // 👇【修改点2】点击唤醒后，小锁停留 3 秒 👇
-                                        delay(3000)
+                                        delay(3000) // 点击唤醒后，停留 3 秒
                                         showLockIcon = false
                                     }
                                 }
