@@ -3,14 +3,10 @@ package dev.anilbeesetti.nextplayer.feature.player
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -26,14 +22,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -104,31 +97,15 @@ internal fun MediaPlayerControls(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
 
-    // 零闪现：亮屏瞬间直接上锁
+    // 👇 唯一的改动：亮屏后 1 秒强制上锁 👇
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        if (overlayView == null) {
-            controlsVisibilityState.hideControls()
-            controlsVisibilityState.lockControls()
+        scope.launch {
+            delay(1000)
+            if (overlayView == null) {
+                controlsVisibilityState.lockControls()
+            }
         }
     }
-
-    // 控制小锁图标的透明度
-    var showLockIcon by remember { mutableStateOf(true) }
-    
-    LaunchedEffect(controlsVisibilityState.controlsLocked) {
-        if (controlsVisibilityState.controlsLocked) {
-            showLockIcon = true
-            delay(3000) // 锁定时，小锁提示亮 3 秒
-            showLockIcon = false // 然后彻底隐身
-        } else {
-            showLockIcon = true
-        }
-    }
-    
-    val lockAlpha by animateFloatAsState(
-        targetValue = if (showLockIcon) 1f else 0f,
-        label = "lock_alpha"
-    )
 
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
@@ -162,23 +139,7 @@ internal fun MediaPlayerControls(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                // 👇 核心修复：使用 Unit 永不重建，利用 Final 阶段偷听点击 👇
-                .pointerInput(Unit) {
-                    awaitEachGesture {
-                        awaitFirstDown(pass = PointerEventPass.Final)
-                        val up = waitForUpOrCancellation(pass = PointerEventPass.Final)
-                        if (up != null) {
-                            if (controlsVisibilityState.controlsLocked && !showLockIcon) {
-                                showLockIcon = true
-                                scope.launch {
-                                    delay(3000)
-                                    showLockIcon = false
-                                }
-                            }
-                        }
-                    }
-                }
-                // 👆 核心修复结束 👆
+                // 彻底删除了所有的 pointerInput 拦截，完全交还给原生
                 .thenIf(condition = isTv) {
                     focusRequester(focusRequester = rootFocusRequester)
                         .focusable()
@@ -219,15 +180,14 @@ internal fun MediaPlayerControls(
             )
 
             if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
-                Box(modifier = Modifier.alpha(lockAlpha)) {
-                    PlayerLockedControls(
-                        onUnlockControls = controlsVisibilityState::unlockControls,
-                        unlockButtonModifier = Modifier.thenIf(condition = isTv) {
-                            focusRequester(focusRequester = unlockFocusRequester)
-                                .onFocusChanged { isUnlockFocused = it.hasFocus }
-                        },
-                    )
-                }
+                // 小锁常亮！
+                PlayerLockedControls(
+                    onUnlockControls = controlsVisibilityState::unlockControls,
+                    unlockButtonModifier = Modifier.thenIf(condition = isTv) {
+                        focusRequester(focusRequester = unlockFocusRequester)
+                            .onFocusChanged { isUnlockFocused = it.hasFocus }
+                    },
+                )
             } else {
                 PlayerControls(
                     player = player,
