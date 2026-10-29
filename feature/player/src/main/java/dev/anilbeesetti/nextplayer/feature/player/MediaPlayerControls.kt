@@ -161,7 +161,7 @@ internal fun MediaPlayerControls(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                // 👇 核心：点击屏幕唤醒小锁的逻辑 👇
+                // 点击屏幕唤醒小锁的逻辑
                 .pointerInput(controlsVisibilityState.controlsLocked) {
                     if (controlsVisibilityState.controlsLocked) {
                         detectTapGestures(
@@ -177,7 +177,6 @@ internal fun MediaPlayerControls(
                         )
                     }
                 }
-                // 👆 核心结束 👆
                 .thenIf(condition = isTv) {
                     focusRequester(focusRequester = rootFocusRequester)
                         .focusable()
@@ -293,7 +292,12 @@ internal fun MediaPlayerControls(
         }
     }
 
+    // 👇👇👇 核心补充：锁定时拦截返回键，防止老人按三角键退出去！ 👇👇👇
     BackHandler {
+        if (controlsVisibilityState.controlsLocked) {
+            return@BackHandler
+        }
+        
         when {
             overlayView != null -> overlayView = null
 
@@ -303,4 +307,5 @@ internal fun MediaPlayerControls(
             else -> onAction(PlayerAction.NavigateUp)
         }
     }
+    // 👆👆👆 核心补充结束 👆👆👆
 }
