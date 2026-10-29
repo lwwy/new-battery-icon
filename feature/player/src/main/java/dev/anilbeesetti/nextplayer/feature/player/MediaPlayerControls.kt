@@ -100,26 +100,24 @@ internal fun MediaPlayerControls(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
 
-    // 亮屏后 1 秒强制上锁
+    // 👇 终极零闪现：亮屏瞬间直接秒隐藏+秒上锁 👇
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        scope.launch {
-            delay(1000)
-            if (overlayView == null) {
-                controlsVisibilityState.lockControls()
-            }
+        if (overlayView == null) {
+            controlsVisibilityState.hideControls()
+            controlsVisibilityState.lockControls()
         }
     }
 
-    // 👇 新增：小锁透明度控制 👇
+    // 控制小锁图标的透明度
     var showLockIcon by remember { mutableStateOf(true) }
     
     LaunchedEffect(controlsVisibilityState.controlsLocked) {
         if (controlsVisibilityState.controlsLocked) {
             showLockIcon = true
-            delay(1000) // 亮 1 秒后隐身
+            delay(1000) // 小锁亮 1 秒后隐身
             showLockIcon = false
         } else {
-            showLockIcon = true // 解锁时恢复常亮逻辑
+            showLockIcon = true
         }
     }
     
@@ -127,7 +125,6 @@ internal fun MediaPlayerControls(
         targetValue = if (showLockIcon) 1f else 0f,
         label = "lock_alpha"
     )
-    // 👆 新增结束 👆
 
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
@@ -161,7 +158,7 @@ internal fun MediaPlayerControls(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                // 👇 核心：用 pointerInput 监听原生手势变量，绝对不拦截触摸 👇
+                // 监听原生手势，绝不拦截触摸
                 .pointerInput(tapGestureState) {
                     if (controlsVisibilityState.controlsLocked && !showLockIcon) {
                         showLockIcon = true
@@ -171,7 +168,6 @@ internal fun MediaPlayerControls(
                         }
                     }
                 }
-                // 👆 核心结束 👆
                 .thenIf(condition = isTv) {
                     focusRequester(focusRequester = rootFocusRequester)
                         .focusable()
@@ -212,7 +208,7 @@ internal fun MediaPlayerControls(
             )
 
             if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
-                // 👇 用小锁的透明度包住原生组件 👇
+                // 应用透明度
                 Box(modifier = Modifier.alpha(lockAlpha)) {
                     PlayerLockedControls(
                         onUnlockControls = controlsVisibilityState::unlockControls,
@@ -222,7 +218,6 @@ internal fun MediaPlayerControls(
                         },
                     )
                 }
-                // 👆 包裹结束 👆
             } else {
                 PlayerControls(
                     player = player,
