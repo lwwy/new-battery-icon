@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -22,11 +23,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -97,7 +100,7 @@ internal fun MediaPlayerControls(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
 
-    // 👇 唯一的改动：亮屏后 1 秒强制上锁 👇
+    // 亮屏后 1 秒强制上锁
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         scope.launch {
             delay(1000)
@@ -106,6 +109,25 @@ internal fun MediaPlayerControls(
             }
         }
     }
+
+    // 👇 新增：小锁透明度控制 👇
+    var showLockIcon by remember { mutableStateOf(true) }
+    
+    LaunchedEffect(controlsVisibilityState.controlsLocked) {
+        if (controlsVisibilityState.controlsLocked) {
+            showLockIcon = true
+            delay(1000) // 亮 1 秒后隐身
+            showLockIcon = false
+        } else {
+            showLockIcon = true // 解锁时恢复常亮逻辑
+        }
+    }
+    
+    val lockAlpha by animateFloatAsState(
+        targetValue = if (showLockIcon) 1f else 0f,
+        label = "lock_alpha"
+    )
+    // 👆 新增结束 👆
 
     val isTv = remember { context.isTelevision }
     val rootFocusRequester = remember { FocusRequester() }
@@ -139,7 +161,17 @@ internal fun MediaPlayerControls(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                // 彻底删除了所有的 pointerInput 拦截，完全交还给原生
+                // 👇 核心：用 pointerInput 监听原生手势变量，绝对不拦截触摸 👇
+                .pointerInput(tapGestureState) {
+                    if (controlsVisibilityState.controlsLocked && !showLockIcon) {
+                        showLockIcon = true
+                        scope.launch {
+                            delay(1000)
+                            showLockIcon = false
+                        }
+                    }
+                }
+                // 👆 核心结束 👆
                 .thenIf(condition = isTv) {
                     focusRequester(focusRequester = rootFocusRequester)
                         .focusable()
@@ -180,14 +212,17 @@ internal fun MediaPlayerControls(
             )
 
             if (controlsVisibilityState.controlsVisible && controlsVisibilityState.controlsLocked) {
-                // 小锁常亮！
-                PlayerLockedControls(
-                    onUnlockControls = controlsVisibilityState::unlockControls,
-                    unlockButtonModifier = Modifier.thenIf(condition = isTv) {
-                        focusRequester(focusRequester = unlockFocusRequester)
-                            .onFocusChanged { isUnlockFocused = it.hasFocus }
-                    },
-                )
+                // 👇 用小锁的透明度包住原生组件 👇
+                Box(modifier = Modifier.alpha(lockAlpha)) {
+                    PlayerLockedControls(
+                        onUnlockControls = controlsVisibilityState::unlockControls,
+                        unlockButtonModifier = Modifier.thenIf(condition = isTv) {
+                            focusRequester(focusRequester = unlockFocusRequester)
+                                .onFocusChanged { isUnlockFocused = it.hasFocus }
+                        },
+                    )
+                }
+                // 👆 包裹结束 👆
             } else {
                 PlayerControls(
                     player = player,
